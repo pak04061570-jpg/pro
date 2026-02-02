@@ -307,32 +307,35 @@ $is_closed = ($proj['status'] == 'Closed');
         })
     }
 
-    function returnItem(sn) {
-        // ใช้ SweetAlert ถามยืนยันก่อนคืน
-        Swal.fire({
-            title: 'ยืนยันคืนสินค้า?',
-            text: "ต้องการคืนสินค้า S/N: " + sn + " กลับเข้าคลังใช่หรือไม่?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33', // สีแดงเตือนใจ
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'ใช่, คืนของ!',
-            cancelButtonText: 'ยกเลิก'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // ส่งค่าไปหา API ที่เราเพิ่งสร้าง
-                $.post("api_return_item.php", { sn: sn }, function(res){
-                    let data = JSON.parse(res);
-                    if(data.status == 'success') {
-                        Swal.fire('สำเร็จ', 'คืนสินค้าเข้าคลังเรียบร้อย', 'success').then(() => {
-                            location.reload(); // รีโหลดหน้าเพื่ออัปเดตตาราง
-                        });
-                    } else {
-                        Swal.fire('Error', data.msg, 'error');
-                    }
-                });
-            }
-        })
+    // ฟังก์ชันคืนสินค้า (แบบมีช่องหมายเหตุ)
+function returnItem(sn) {
+    Swal.fire({
+        title: 'ยืนยันคืนสินค้า?',
+        text: "ระบุสาเหตุหรือหมายเหตุ (ถ้ามี)",
+        input: 'text',
+        inputPlaceholder: 'เช่น ของเหลือจากหน้างาน, เปลี่ยนตัวใหม่...',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'คืนสินค้า',
+        cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            let note = result.value; // รับข้อความที่พิมพ์
+
+            $.post("api_return_item.php", { sn: sn, note: note }, function(res){
+                let data = JSON.parse(res);
+                if(data.status == 'success') {
+                    Swal.fire('สำเร็จ', 'คืนสินค้าเข้าคลังเรียบร้อย', 'success').then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire('Error', data.msg, 'error');
+                }
+            });
+        }
+    })
+}
     }
 </script>
 </body>
